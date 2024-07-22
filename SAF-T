@@ -1,0 +1,249 @@
+openapi: 3.0.0
+info:
+  title: SAF-T XML Upload API
+  description: API for uploading SAF-T files in XML format.
+  version: 1.0.0
+servers:
+  - url: https://taxeratst.prod.apimanagement.eu10.hana.ondemand.com
+    description: Test Server
+  - url: https://taxeracpi-prd.prod.apimanagement.eu10.hana.ondemand.com
+    description: Production Server
+paths:
+  /saf-t/upload:
+    post:
+      summary: Upload SAF-T XML File
+      description: Allows clients to upload SAF-T files in XML format directly in the request body.
+      tags:
+        - SAF-T
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/AuditFile'
+            examples:
+              Norway:
+                summary: SAF-T example for Norway
+                value: |
+                  <AuditFile xmlns="urn:OECD:StandardAuditFile-Tax:NO_1.0">
+                    <Header>
+                      <AuditFileVersion>1.0</AuditFileVersion>
+                      <CompanyID>NO123456789</CompanyID>
+                      <TaxRegistrationNumber>123456789MVA</TaxRegistrationNumber>
+                      <CompanyName>Example Company Norway</CompanyName>
+                    </Header>
+                    <MasterFiles>
+                      <!-- Master files content -->
+                    </MasterFiles>
+                    <GeneralLedgerEntries>
+                      <!-- General ledger entries content -->
+                    </GeneralLedgerEntries>
+                  </AuditFile>
+              Poland:
+                summary: SAF-T example for Poland
+                value: |
+                  <AuditFile xmlns="urn:OECD:StandardAuditFile-Tax:PL_1.0">
+                    <Header>
+                      <AuditFileVersion>1.0</AuditFileVersion>
+                      <CompanyID>PL123456789</CompanyID>
+                      <TaxRegistrationNumber>1234567890</TaxRegistrationNumber>
+                      <CompanyName>Example Company Poland</CompanyName>
+                    </Header>
+                    <MasterFiles>
+                      <!-- Master files content -->
+                    </MasterFiles>
+                    <GeneralLedgerEntries>
+                      <!-- General ledger entries content -->
+                    </GeneralLedgerEntries>
+                  </AuditFile>
+              Romania:
+                summary: SAF-T example for Romania
+                value: |
+                  <AuditFile xmlns="urn:OECD:StandardAuditFile-Tax:RO_1.0">
+                    <Header>
+                      <AuditFileVersion>1.0</AuditFileVersion>
+                      <CompanyID>RO123456789</CompanyID>
+                      <TaxRegistrationNumber>123456789</TaxRegistrationNumber>
+                      <CompanyName>Example Company Romania</CompanyName>
+                    </Header>
+                    <MasterFiles>
+                      <!-- Master files content -->
+                    </MasterFiles>
+                    <GeneralLedgerEntries>
+                      <!-- General ledger entries content -->
+                    </GeneralLedgerEntries>
+                  </AuditFile>
+      parameters:
+        - name: X-APIKey
+          in: header
+          required: true
+          schema:
+            type: string
+          description: API key to authorize requests
+      responses:
+        '200':
+          description: Successful upload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: SAF-T file uploaded successfully.
+                  file_id:
+                    type: string
+                    example: 12345
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Bad Request
+                  message:
+                    type: string
+                    example: Invalid XML content.
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Unauthorized
+                  message:
+                    type: string
+                    example: Invalid or expired token.
+  /oauth2/authorize:
+    get:
+      summary: OAuth2 Authorization Endpoint
+      description: Endpoint to authorize and obtain OAuth2 tokens.
+      tags:
+        - Authorization
+      responses:
+        '200':
+          description: Authorization successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authorization_code:
+                    type: string
+                    example: AQABAAEAAAD--DLA3VO7QrddgJg7WevrQQ1g4p7x7-9MJJ5A7...
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Bad Request
+                  message:
+                    type: string
+                    example: Invalid request parameters.
+  /oauth2/token:
+    post:
+      summary: OAuth2 Token Endpoint
+      description: Endpoint to exchange authorization code for OAuth2 tokens.
+      tags:
+        - Authorization
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                  example: authorization_code
+                code:
+                  type: string
+                  example: AQABAAEAAAD--DLA3VO7QrddgJg7WevrQQ1g4p7x7-9MJJ5A7...
+                redirect_uri:
+                  type: string
+                  example: https://myapp.com/callback
+                client_id:
+                  type: string
+                  example: my_client_id
+                client_secret:
+                  type: string
+                  example: my_client_secret
+      responses:
+        '200':
+          description: Token obtained successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  token_type:
+                    type: string
+                    example: Bearer
+                  expires_in:
+                    type: integer
+                    example: 3600
+                  refresh_token:
+                    type: string
+                    example: dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4...
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Bad Request
+                  message:
+                    type: string
+                    example: Invalid request parameters.
+      security:
+        - clientAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    clientAuth:
+      type: http
+      scheme: basic
+  schemas:
+    AuditFile:
+      type: object
+      xml:
+        name: AuditFile
+      properties:
+        Header:
+          type: object
+          properties:
+            AuditFileVersion:
+              type: string
+            CompanyID:
+              type: string
+            TaxRegistrationNumber:
+              type: string
+            CompanyName:
+              type: string
+        MasterFiles:
+          type: object
+        GeneralLedgerEntries:
+          type: object
+      required:
+        - Header
+        - MasterFiles
+        - GeneralLedgerEntries
